@@ -105,7 +105,7 @@ class SocketService {
         select: { teamId: true }
       });
 
-      teams.forEach(team => {
+      teams.forEach((team: { teamId: string }) => {
         socket.join(`team:${team.teamId}`);
       });
     } catch (error) {
@@ -200,7 +200,7 @@ class SocketService {
       select: { teamId: true }
     });
     
-    return memberships.map(m => m.teamId);
+    return memberships.map((m: { teamId: string }) => m.teamId);
   }
 
   // Public methods for emitting events
