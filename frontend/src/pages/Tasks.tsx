@@ -814,23 +814,24 @@ export default function Tasks() {
                   </div>
                 </div>
 
-                {(task._count.comments > 0 || task._count.dependencies > 0) && (
-                  <div className="mt-4 pt-4 border-t border-white/10 flex gap-6 text-sm">
-                    <button
-                      onClick={() => handleShowComments(task)}
-                      className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors cursor-pointer group"
-                    >
-                      <MessageSquare className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                      <span className="font-medium">{task._count.comments} comment{task._count.comments !== 1 ? 's' : ''}</span>
-                    </button>
-                    {task._count.dependencies > 0 && (
-                      <div className="flex items-center gap-2 text-orange-400">
-                        <div className="h-4 w-4 rounded-full border-2 border-orange-400"></div>
-                        <span className="font-medium">{task._count.dependencies} dependenc{task._count.dependencies !== 1 ? 'ies' : 'y'}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Comments and Dependencies Section */}
+                <div className="mt-4 pt-4 border-t border-white/10 flex gap-6 text-sm">
+                  <button
+                    onClick={() => handleShowComments(task)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors cursor-pointer group"
+                  >
+                    <MessageSquare className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">
+                      {task._count?.comments || 0} comment{(task._count?.comments || 0) !== 1 ? 's' : ''}
+                    </span>
+                  </button>
+                  {task._count?.dependencies > 0 && (
+                    <div className="flex items-center gap-2 text-orange-400">
+                      <div className="h-4 w-4 rounded-full border-2 border-orange-400"></div>
+                      <span className="font-medium">{task._count.dependencies} dependenc{task._count.dependencies !== 1 ? 'ies' : 'y'}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           )}
@@ -1000,9 +1001,16 @@ export default function Tasks() {
 
       {/* Comments Modal */}
       {showCommentsModal && selectedTaskForComments && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !addingComment) {
+              closeCommentsModal();
+            }
+          }}
+        >
+          <div className="bg-gray-900 border border-white/20 rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-4 text-white">
               Comments for "{selectedTaskForComments.title}"
             </h3>
             
@@ -1010,53 +1018,61 @@ export default function Tasks() {
             <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
               {loadingComments ? (
                 <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Loading comments...</p>
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="text-sm text-gray-400 mt-2">Loading comments...</p>
                 </div>
               ) : comments.length > 0 ? (
                 comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                  <div key={comment.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm text-gray-900 dark:text-white">
+                      <span className="font-medium text-sm text-white">
                         {comment.user?.firstName && comment.user?.lastName 
                           ? `${comment.user.firstName} ${comment.user.lastName}`
                           : comment.user?.email || 'Unknown User'
                         }
                       </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-gray-400">
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
+                    <p className="text-sm text-gray-300">{comment.content}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                <p className="text-center text-gray-400 py-4">
                   No comments yet. Be the first to comment!
                 </p>
               )}
             </div>
 
             {/* Add Comment Form */}
-            <form onSubmit={handleAddComment} className="space-y-3">
+            <div className="space-y-3">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Add a comment..."
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                className="w-full p-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 resize-none"
                 rows={3}
                 disabled={addingComment}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={closeCommentsModal}
-                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  disabled={addingComment}
+                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white rounded-lg transition-colors"
                 >
                   Close
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleAddComment}
                   disabled={addingComment || !newComment.trim()}
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
@@ -1073,7 +1089,10 @@ export default function Tasks() {
                   )}
                 </button>
               </div>
-            </form>
+              <p className="text-xs text-gray-400 text-center">
+                Press Ctrl+Enter to quickly add comment
+              </p>
+            </div>
           </div>
         </div>
       )}
