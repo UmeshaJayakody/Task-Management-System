@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { userApi } from '../api/userApi';
 import { useAuth } from '../contexts/AuthContext';
 import toast, { Toaster } from 'react-hot-toast';
@@ -17,7 +18,24 @@ export default function SignIn() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login } = useAuth();
+  const { login, isLoggedIn, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the intended destination (from ProtectedRoute) or default to dashboard
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  // Redirect if already authenticated (moved to useEffect to avoid render-time state updates)
+  useEffect(() => {
+    if (!authLoading && isLoggedIn) {
+      // Add a small delay to allow toast to be visible
+      const timer = setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 1200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading, isLoggedIn, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +51,11 @@ export default function SignIn() {
         try {
           const userData = await userApi.getProfile();
           login(userData); // Update AuthContext with user data
+          // Navigation will be handled by the useEffect when isLoggedIn changes
         } catch (profileError) {
           console.error('Failed to fetch user profile after login:', profileError);
+          // Even if profile fetch fails, we have the token, so let the useEffect handle navigation
         }
-        
-        setTimeout(() => (window.location.href = '/'), 1200);
       } else {
         setError(result?.message || 'Sign in failed');
         toast.error(result?.message || 'Sign in failed');

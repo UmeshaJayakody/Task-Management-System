@@ -34,9 +34,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
+      console.log('AuthContext - Token found:', !!token); // Debug log
       if (token) {
         try {
+          console.log('AuthContext - Fetching user profile...'); // Debug log
           const userData = await userApi.getProfile();
+          console.log('AuthContext - User data received:', userData); // Debug log
           setUser(userData);
           setIsLoggedIn(true);
         } catch (error) {
@@ -46,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
         }
       } else {
+        console.log('AuthContext - No token found'); // Debug log
         setIsLoggedIn(false);
         setUser(null);
       }
@@ -53,6 +57,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
+
+    // Listen for storage changes to handle token removal from other tabs or axios interceptor
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' && e.newValue === null) {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const login = (userData: UserProfile) => {

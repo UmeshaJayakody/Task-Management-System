@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userApi, type UpdateUserData } from '../api/userApi';
 import { User, Mail, Phone, Home, Save, Edit3, X, ArrowLeft } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -57,7 +58,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="container mx-auto px-4 py-8">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 pt-20 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>

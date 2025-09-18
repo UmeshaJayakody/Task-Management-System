@@ -174,3 +174,39 @@ export const getUserById = async (userId: string) => {
 
   return user;
 };
+
+// Search users by email for team member invitation
+export const searchUsersByEmail = async (emailQuery: string) => {
+  console.log('🔍 Searching users with email query:', emailQuery);
+  
+  try {
+    // Validate input
+    if (!emailQuery || typeof emailQuery !== 'string') {
+      console.log('⚠️ Invalid email query, returning empty array');
+      return [];
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        email: {
+          contains: emailQuery,
+          mode: 'insensitive'
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+      take: 10 // Limit results to 10 users
+    });
+
+    console.log('✅ Search results:', users.length, 'users found');
+    return users || []; // Ensure we always return an array
+  } catch (error) {
+    console.error('❌ Error in searchUsersByEmail:', error);
+    // Return empty array instead of throwing error
+    return [];
+  }
+};

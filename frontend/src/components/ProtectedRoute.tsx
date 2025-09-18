@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -24,7 +24,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Redirect to sign in if not authenticated
-  if (!user) {
+  if (!isLoggedIn) {
     // Save the attempted location for redirecting after login
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }

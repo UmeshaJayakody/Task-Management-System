@@ -1,0 +1,523 @@
+/* Dashboard Animations */
+@keyframes slideIn {
+  from {
+    width: 0%;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes growUp {
+  from {
+    height: 0%;
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Custom Progress Ring Styles */
+.progress-ring-circle {
+  transition: stroke-dashoffset 1.5s ease-in-out;
+}
+
+/* Progress Bars */
+.progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  transition: all 1s ease-out;
+  animation: slideIn 1.5s ease-out;
+}
+
+.progress-bar-completed {
+  background: linear-gradient(to right, #10b981, #059669);
+}
+
+.progress-bar-progress {
+  background: linear-gradient(to right, #f59e0b, #d97706);
+  animation-delay: 0.2s;
+  animation-fill-mode: both;
+}
+
+.progress-bar-pending {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  animation-delay: 0.4s;
+  animation-fill-mode: both;
+}
+
+/* Weekly Activity Bars */
+.activity-bar {
+  background: linear-gradient(to top, #8b5cf6, #a855f7);
+  border-radius: 4px 4px 0 0;
+  transition: all 1s ease-out;
+  animation: growUp 1.5s ease-out both;
+  width: 100%;
+}
+
+.activity-bar:nth-child(1) { animation-delay: 0s; }
+.activity-bar:nth-child(2) { animation-delay: 0.1s; }
+.activity-bar:nth-child(3) { animation-delay: 0.2s; }
+.activity-bar:nth-child(4) { animation-delay: 0.3s; }
+.activity-bar:nth-child(5) { animation-delay: 0.4s; }
+.activity-bar:nth-child(6) { animation-delay: 0.5s; }
+.activity-bar:nth-child(7) { animation-delay: 0.6s; }
+
+/* Dynamic Height Classes for Activity Bars */
+.h-10per { height: 10%; }
+.h-20per { height: 20%; }
+.h-30per { height: 30%; }
+.h-40per { height: 40%; }
+.h-50per { height: 50%; }
+.h-60per { height: 60%; }
+.h-70per { height: 70%; }
+.h-80per { height: 80%; }
+.h-90per { height: 90%; }
+.h-100per { height: 100%; }
+
+/* Dynamic Width Classes for Progress Bars */
+.w-0per { width: 0%; }
+.w-5per { width: 5%; }
+.w-10per { width: 10%; }
+.w-15per { width: 15%; }
+.w-20per { width: 20%; }
+.w-25per { width: 25%; }
+.w-30per { width: 30%; }
+.w-35per { width: 35%; }
+.w-40per { width: 40%; }
+.w-45per { width: 45%; }
+.w-50per { width: 50%; }
+.w-55per { width: 55%; }
+.w-60per { width: 60%; }
+.w-65per { width: 65%; }
+.w-70per { width: 70%; }
+.w-75per { width: 75%; }
+.w-80per { width: 80%; }
+.w-85per { width: 85%; }
+.w-90per { width: 90%; }
+.w-95per { width: 95%; }
+.w-100per { width: 100%; }
+
+/* Hover effects for cards - Reduced transitions for better performance */
+.stats-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.2);
+}
+
+/* Colorful stat card variants - Reduced transitions */
+.stats-card-blue {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(30, 64, 175, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.stats-card-blue:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(30, 64, 175, 0.12));
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 15px 30px -8px rgba(59, 130, 246, 0.2);
+}
+
+.stats-card-green {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stats-card-green:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.12));
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 15px 30px -8px rgba(16, 185, 129, 0.2);
+}
+
+.stats-card-yellow {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.stats-card-yellow:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.12));
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 15px 30px -8px rgba(245, 158, 11, 0.2);
+}
+
+.stats-card-purple {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.1));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.stats-card-purple:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(109, 40, 217, 0.12));
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 15px 30px -8px rgba(139, 92, 246, 0.2);
+}
+
+/* Reduced icon animations */
+.stats-icon {
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.stats-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.stats-card:hover .stats-icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.stats-card:hover .stats-icon::before {
+  transform: translate(-50%, -50%) scale(1.5);
+  opacity: 0.3;
+}
+
+.stats-icon-blue::before {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent);
+}
+
+.stats-icon-green::before {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.4), transparent);
+}
+
+.stats-icon-yellow::before {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.4), transparent);
+}
+
+.stats-icon-purple::before {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent);
+}
+
+/* Animated gradient backgrounds */
+.gradient-animation {
+  background: linear-gradient(-45deg, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Loading shimmer effect */
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Enhanced Responsive Animations */
+@keyframes statsCardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.8);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes colorPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes colorPulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+  }
+}
+
+@keyframes colorPulseYellow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  }
+}
+
+@keyframes colorPulsePurple {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* Stats card entrance animations */
+.stats-card {
+  animation: statsCardEntrance 0.8s ease-out both;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0s; }
+.stats-card:nth-child(2) { animation-delay: 0.1s; }
+.stats-card:nth-child(3) { animation-delay: 0.2s; }
+.stats-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* Hover animations */
+.stats-card-blue:hover {
+  animation: colorPulse 2s infinite;
+}
+
+.stats-card-green:hover {
+  animation: colorPulseGreen 2s infinite;
+}
+
+.stats-card-yellow:hover {
+  animation: colorPulseYellow 2s infinite;
+}
+
+.stats-card-purple:hover {
+  animation: colorPulsePurple 2s infinite;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 1.25rem;
+  }
+  
+  .stats-icon {
+    padding: 0.75rem;
+  }
+  
+  .stats-card h3 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .stats-icon {
+    padding: 0.5rem;
+  }
+}
+
+/* Monthly Calendar Styles */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: 0.75rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.calendar-day:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+/* Calendar day states */
+.calendar-day-default {
+  background: rgba(75, 85, 99, 0.3);
+  color: rgba(156, 163, 175, 0.8);
+}
+
+.calendar-day-current-month {
+  background: rgba(75, 85, 99, 0.5);
+  color: rgba(229, 231, 235, 0.9);
+}
+
+.calendar-day-today {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  border: 2px solid rgba(59, 130, 246, 0.6);
+}
+
+.calendar-day-due-date {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  border: 2px solid rgba(239, 68, 68, 0.6);
+  animation: pulseDueDate 2s infinite;
+}
+
+.calendar-day-today.calendar-day-due-date {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.6);
+  border: 2px solid rgba(245, 158, 11, 0.8);
+}
+
+.calendar-day-activity-low {
+  background: rgba(34, 197, 94, 0.3);
+  color: rgba(34, 197, 94, 0.9);
+}
+
+.calendar-day-activity-medium {
+  background: rgba(34, 197, 94, 0.6);
+  color: white;
+}
+
+.calendar-day-activity-high {
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+}
+
+/* Calendar animations */
+@keyframes pulseDueDate {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+  }
+}
+
+@keyframes calendarEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.calendar-day {
+  animation: calendarEntrance 0.5s ease-out both;
+}
+
+/* Staggered animation for calendar days */
+.calendar-day:nth-child(1) { animation-delay: 0s; }
+.calendar-day:nth-child(2) { animation-delay: 0.02s; }
+.calendar-day:nth-child(3) { animation-delay: 0.04s; }
+.calendar-day:nth-child(4) { animation-delay: 0.06s; }
+.calendar-day:nth-child(5) { animation-delay: 0.08s; }
+.calendar-day:nth-child(6) { animation-delay: 0.1s; }
+.calendar-day:nth-child(7) { animation-delay: 0.12s; }
+.calendar-day:nth-child(8) { animation-delay: 0.14s; }
+.calendar-day:nth-child(9) { animation-delay: 0.16s; }
+.calendar-day:nth-child(10) { animation-delay: 0.18s; }
+.calendar-day:nth-child(11) { animation-delay: 0.2s; }
+.calendar-day:nth-child(12) { animation-delay: 0.22s; }
+.calendar-day:nth-child(13) { animation-delay: 0.24s; }
+.calendar-day:nth-child(14) { animation-delay: 0.26s; }
+.calendar-day:nth-child(15) { animation-delay: 0.28s; }
+.calendar-day:nth-child(16) { animation-delay: 0.3s; }
+.calendar-day:nth-child(17) { animation-delay: 0.32s; }
+.calendar-day:nth-child(18) { animation-delay: 0.34s; }
+.calendar-day:nth-child(19) { animation-delay: 0.36s; }
+.calendar-day:nth-child(20) { animation-delay: 0.38s; }
+.calendar-day:nth-child(21) { animation-delay: 0.4s; }
+
+/* Calendar header styles */
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-header-day {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(156, 163, 175, 0.8);
+  padding: 0.25rem 0;
+}
+
+/* Tooltip for calendar days */
+.calendar-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 20;
+}
+
+.calendar-day:hover .calendar-tooltip {
+  opacity: 1;
+}

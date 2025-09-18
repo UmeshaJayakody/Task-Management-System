@@ -23,7 +23,187 @@ model User {
   updatedAt             DateTime         @updatedAt
   lastLoginAt           DateTime?
   
+  // Relationships
+  createdTasks          Task[]           @relation("CreatedTasks")
+  assignedTasks         TaskAssignment[]
+  teamMemberships       TeamMember[]
+  comments              Comment[]
+  activities            Activity[]
+  
   // Add indexes for better performance
   @@index([email])
   @@index([createdAt])
+}
+
+model Team {
+  id                    String           @id @default(cuid())
+  name                  String
+  description           String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  // Relationships
+  members               TeamMember[]
+  tasks                 Task[]
+  activities            Activity[]
+  
+  @@index([createdAt])
+}
+
+model TeamMember {
+  id                    String           @id @default(cuid())
+  userId                String
+  teamId                String
+  role                  TeamRole         @default(MEMBER)
+  joinedAt              DateTime         @default(now())
+  
+  // Relationships
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                  Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+}
+
+model Task {
+  id                    String           @id @default(cuid())
+  title                 String
+  description           String?
+  status                TaskStatus       @default(TODO)
+  priority              TaskPriority     @default(MEDIUM)
+  dueDate               DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  completedAt           DateTime?
+  
+  // Relationships
+  createdById           String
+  teamId                String?
+  createdBy             User             @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: Cascade)
+  team                  Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  assignments           TaskAssignment[]
+  comments              Comment[]
+  activities            Activity[]
+  
+  // Task Dependencies
+  dependentOn           TaskDependency[] @relation("DependentTask")
+  dependencies          TaskDependency[] @relation("DependencyTask")
+  
+  @@index([createdById])
+  @@index([teamId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model TaskAssignment {
+  id                    String           @id @default(cuid())
+  taskId                String
+  userId                String
+  assignedAt            DateTime         @default(now())
+  assignedById          String?
+  
+  // Relationships
+  task                  Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
+}
+
+model TaskDependency {
+  id                    String           @id @default(cuid())
+  taskId                String           // The task that depends on another
+  dependsOnTaskId       String           // The task it depends on
+  createdAt             DateTime         @default(now())
+  
+  // Relationships
+  task                  Task             @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask         Task             @relation("DependencyTask", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model Comment {
+  id                    String           @id @default(cuid())
+  content               String
+  taskId                String
+  userId                String
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  // Relationships
+  task                  Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([taskId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Activity {
+  id                    String           @id @default(cuid())
+  type                  ActivityType
+  description           String
+  entityType            EntityType
+  entityId              String
+  userId                String?
+  teamId                String?
+  metadata              Json?
+  createdAt             DateTime         @default(now())
+  
+  // Relationships
+  user                  User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  team                  Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  task                  Task?            @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([teamId])
+  @@index([createdAt])
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  TASK_COMMENTED
+  TEAM_CREATED
+  TEAM_JOINED
+  TEAM_LEFT
+  USER_REGISTERED
+}
+
+enum EntityType {
+  USER
+  TASK
+  TEAM
+  COMMENT
 }

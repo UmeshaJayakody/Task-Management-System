@@ -137,4 +137,32 @@ export const userApi = {
       throw new Error(error.response?.data?.message || 'Failed to fetch user');
     }
   },
+
+  // Search users by email for team member invitation
+  searchUsers: async (email: string): Promise<{ users: UserProfile[] }> => {
+    try {
+      console.log('🔍 Frontend: Searching users with email:', email);
+      // Try the new endpoint first, fallback to old one
+      const response = await apiClient.get(`/users/find-users?email=${encodeURIComponent(email)}`);
+      console.log('✅ Frontend: Search response:', response.data);
+      
+      // Handle both old and new response formats
+      if (response.data.success !== undefined) {
+        return { users: response.data.users || [] };
+      } else {
+        return response.data;
+      }
+    } catch (error: any) {
+      console.error('❌ Frontend: Search error:', error);
+      console.error('❌ Frontend: Error response:', error.response?.data);
+      
+      // Return empty array instead of throwing error for better UX
+      if (error.response?.status === 500) {
+        console.log('🔧 Returning empty array due to server error');
+        return { users: [] };
+      }
+      
+      throw new Error(error.response?.data?.message || 'Failed to search users');
+    }
+  },
 };
