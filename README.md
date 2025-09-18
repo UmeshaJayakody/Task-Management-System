@@ -1,6 +1,42 @@
-# Task Management System
+# Task Management System - User Management
 
-A full-stack Task Management System built with React + TypeScript + Vite frontend and Node.js + Express + TypeScript backend.
+A full-stack user management system built with React, TypeScript, Node.js, Express, and PostgreSQL.
+
+## ✨ Features
+
+### Backend
+- **User Authentication**: Registration, login, and JWT-based authentication
+- **User Management**: Complete CRUD operations for user profiles
+- **Security**: Password hashing with bcryptjs, JWT token validation
+- **Validation**: Comprehensive input validation with Joi
+- **Database**: PostgreSQL with Prisma ORM
+
+### Frontend
+- **Modern React**: Built with React 18, TypeScript, and Vite
+- **Responsive Design**: Tailwind CSS for beautiful, mobile-first UI
+- **Authentication Flow**: Complete sign-in/sign-up with form validation
+- **Protected Routes**: Secure dashboard and profile pages
+- **User Profile Management**: View and edit user information
+
+## 🛠 Tech Stack
+
+### Backend
+- Node.js with TypeScript
+- Express.js framework
+- PostgreSQL database
+- Prisma ORM
+- JWT authentication
+- bcryptjs for password hashing
+- Joi for validation
+
+### Frontend
+- React 18 with TypeScript
+- Vite build tool
+- Tailwind CSS
+- React Router DOM
+- Axios for API calls
+- React Hook Form with Zod validation
+- Lucide React icons
 
 ## 🚀 Project Structure
 
