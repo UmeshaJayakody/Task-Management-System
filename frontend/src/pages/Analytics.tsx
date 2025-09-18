@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Users, CheckSquare, Clock, Calendar, Target, Award } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import { taskApi, type Task } from '../api/taskApi';
 import { teamApi } from '../api/teamApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -205,10 +204,45 @@ export default function Analytics() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
-        <Navbar />
-        <div className="pt-20 flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-          <span className="ml-4 text-white text-lg">Loading analytics...</span>
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              {/* Header skeleton */}
+              <div className="mb-8">
+                <div className="h-10 bg-gray-700 rounded w-64 mb-4"></div>
+                <div className="h-6 bg-gray-700 rounded w-96"></div>
+              </div>
+
+              {/* Time range selector skeleton */}
+              <div className="mb-8 flex justify-end">
+                <div className="h-10 bg-gray-700 rounded w-64"></div>
+              </div>
+
+              {/* Stats cards skeleton */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-8 w-8 bg-gray-700 rounded"></div>
+                      <div className="h-4 bg-gray-700 rounded w-16"></div>
+                    </div>
+                    <div className="h-8 bg-gray-700 rounded w-20 mb-2"></div>
+                    <div className="h-4 bg-gray-700 rounded w-32"></div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Charts skeleton */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+                    <div className="h-6 bg-gray-700 rounded w-48 mb-6"></div>
+                    <div className="h-64 bg-gray-700 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -216,8 +250,6 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
-      <Navbar />
-      
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

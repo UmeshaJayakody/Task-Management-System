@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { userApi, type UpdateUserData } from '../api/userApi';
 import { User, Mail, Phone, Home, Save, Edit3, X, ArrowLeft } from 'lucide-react';
-import Navbar from '../components/Navbar';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -56,10 +55,20 @@ export default function Profile() {
     setIsEditing(false);
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="text-white text-xl">Loading profile...</div>
+          <div className="text-gray-400 text-sm mt-2">Please wait while we fetch your data</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Navbar />
-      
       <div className="container mx-auto px-4 pt-20 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

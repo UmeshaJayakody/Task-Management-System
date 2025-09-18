@@ -23,17 +23,12 @@ export default function SignIn() {
   const location = useLocation();
   
   // Get the intended destination (from ProtectedRoute) or default to dashboard
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from ='/dashboard';
 
-  // Redirect if already authenticated (moved to useEffect to avoid render-time state updates)
+  // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      // Add a small delay to allow toast to be visible
-      const timer = setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 1200);
-      
-      return () => clearTimeout(timer);
+      navigate(from, { replace: true });
     }
   }, [authLoading, isLoggedIn, navigate, from]);
 
@@ -51,10 +46,18 @@ export default function SignIn() {
         try {
           const userData = await userApi.getProfile();
           login(userData); // Update AuthContext with user data
-          // Navigation will be handled by the useEffect when isLoggedIn changes
+          
+          // Navigate immediately after successful login
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 500); // Short delay to allow toast to be visible
+          
         } catch (profileError) {
           console.error('Failed to fetch user profile after login:', profileError);
-          // Even if profile fetch fails, we have the token, so let the useEffect handle navigation
+          // Even if profile fetch fails, we have the token, so navigate anyway
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 500);
         }
       } else {
         setError(result?.message || 'Sign in failed');

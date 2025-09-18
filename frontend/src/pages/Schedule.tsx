@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, User, Filter, Search } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import GanttChart from '../components/GanttChart';
 import { taskApi, type Task, type TaskFilters } from '../api/taskApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,10 +48,47 @@ export default function Schedule() {
 
   const activeFiltersCount = [searchTerm, statusFilter, priorityFilter].filter(Boolean).length;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
+        <div className="pt-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              {/* Header skeleton */}
+              <div className="mb-8">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 bg-gray-700 rounded-xl"></div>
+                  <div>
+                    <div className="h-8 bg-gray-700 rounded w-32 mb-2"></div>
+                    <div className="h-4 bg-gray-700 rounded w-64"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filters skeleton */}
+              <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
+                <div className="h-6 bg-gray-700 rounded w-24 mb-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-10 bg-gray-700 rounded"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gantt chart skeleton */}
+              <div className="bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+                <div className="h-6 bg-gray-700 rounded w-32 mb-6"></div>
+                <div className="h-96 bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
-      <Navbar />
-      
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-black">
       <div className="pt-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

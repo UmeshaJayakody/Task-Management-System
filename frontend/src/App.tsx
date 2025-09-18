@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
@@ -15,13 +16,19 @@ import Schedule from './pages/Schedule';
 import Analytics from './pages/Analytics';
 import './App.css';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  
+  // Define pages where navbar should NOT be shown
+  const pagesWithoutNavbar = ['/signin', '/signup'];
+  
+  // Check if current page should show navbar
+  const shouldShowNavbar = !pagesWithoutNavbar.includes(location.pathname);
+
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <Router>
-          <div className="App">
-            <Routes>
+    <div className="App">
+      {shouldShowNavbar && <Navbar />}
+      <Routes>
               {/* Public Routes */}
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
@@ -109,6 +116,15 @@ function App() {
               }}
             />
           </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <SocketProvider>
+        <Router>
+          <AppContent />
         </Router>
       </SocketProvider>
     </AuthProvider>

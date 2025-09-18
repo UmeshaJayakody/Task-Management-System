@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Search, Users, ArrowLeft, Crown, Shield, UserMinus, CheckSquare, Calendar, User, MessageSquare, Send } from 'lucide-react';
+import { Plus, Search, Users, ArrowLeft, Crown, Shield, UserMinus, CheckSquare, Calendar, User, MessageSquare, Send, Star, Clock } from 'lucide-react';
 import { teamApi } from '../api/teamApi';
 import { userApi } from '../api/userApi';
 import { taskApi } from '../api/taskApi';
@@ -10,7 +10,7 @@ import type { UserProfile } from '../api/userApi';
 import type { Task } from '../api/taskApi';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import Navbar from '../components/Navbar';
+import { Button, Card, CardHeader, CardContent, Modal, Input, Badge } from '../components/ui';
 
 export default function TeamManagement() {
   const { teamId } = useParams();
@@ -212,8 +212,7 @@ export default function TeamManagement() {
     }
   };
 
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddComment = async () => {
     if (!newComment.trim() || !selectedTaskForComments) return;
 
     try {
@@ -259,68 +258,100 @@ export default function TeamManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Navbar />
-      
-      {/* Team Header */}
-      <div className="pt-20 border-b border-white/10 bg-black/20 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={() => navigate('/teams')}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-              title="Back to Teams"
-            >
-              <ArrowLeft className="h-5 w-5 text-white" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-white">{team.name}</h1>
-              {team.description && (
-                <p className="text-gray-300 mt-1">{team.description}</p>
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800">
+      {/* Enhanced Team Header with glassmorphism */}
+      <div className="pt-20 border-b border-white/10">
+        <div className="relative overflow-hidden">
+          {/* Animated background pattern */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600/10 via-accent-600/10 to-primary-600/10 opacity-50" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_50%)]" />
+          
+          <div className="relative container mx-auto px-4 py-8">
+            <div className="flex items-center gap-6 mb-6 animate-slide-up">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => navigate('/teams')}
+                leftIcon={ArrowLeft}
+                className="hover-lift"
+              >
+                Back
+              </Button>
+              
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-gradient-primary mb-2 animate-fade-in">
+                  {team.name}
+                </h1>
+                {team.description && (
+                  <p className="text-gray-300 text-lg animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                    {team.description}
+                  </p>
+                )}
+                
+                {/* Team stats */}
+                <div className="flex items-center gap-4 mt-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <Badge variant="primary" dot>
+                    {team.members.length} Members
+                  </Badge>
+                  <Badge variant="secondary" dot>
+                    {teamTasks.length} Tasks
+                  </Badge>
+                  <Badge variant="success" dot>
+                    {teamTasks.filter(t => t.status === 'DONE').length} Completed
+                  </Badge>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-white/5 rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'members'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Users className="h-4 w-4" />
-              Members ({team.members.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === 'tasks'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <CheckSquare className="h-4 w-4" />
-              Tasks ({teamTasks.length})
-            </button>
+            {/* Enhanced Tab Navigation with glassmorphism */}
+            <div className="flex space-x-2 glass-card rounded-2xl p-2 animate-slide-up" style={{ animationDelay: '0.6s' }}>
+              <button
+                onClick={() => setActiveTab('members')}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-300 group ${
+                  activeTab === 'members'
+                    ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-neon'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Users className="h-5 w-5 transition-transform group-hover:scale-110" />
+                <span>Members</span>
+                <Badge size="sm" variant={activeTab === 'members' ? 'default' : 'primary'}>
+                  {team.members.length}
+                </Badge>
+              </button>
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-medium transition-all duration-300 group ${
+                  activeTab === 'tasks'
+                    ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white shadow-neon'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <CheckSquare className="h-5 w-5 transition-transform group-hover:scale-110" />
+                <span>Tasks</span>
+                <Badge size="sm" variant={activeTab === 'tasks' ? 'default' : 'primary'}>
+                  {teamTasks.length}
+                </Badge>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-6">
+      {/* Enhanced Content with better spacing and animations */}
+      <div className="container mx-auto px-4 py-8 space-y-8">
         {activeTab === 'members' ? (
-          <div className="space-y-6">
-            {/* Add Member Section */}
+          <div className="space-y-8 animate-fade-in">
+            {/* Enhanced Add Member Section */}
             {canManageTeam(team) && (
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Add New Member</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-gray-300 text-sm mb-2">Search by Email</label>
-                    <input
+              <Card variant="glass" padding="lg" animated className="hover-lift">
+                <CardHeader icon={Plus}>
+                  <h2 className="text-2xl font-bold text-white">Add New Member</h2>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <Input
+                      label="Search by Email"
                       type="email"
                       placeholder="Enter email to search users..."
                       value={memberSearchTerm}
@@ -328,295 +359,397 @@ export default function TeamManagement() {
                         setMemberSearchTerm(e.target.value);
                         handleSearchMembers(e.target.value);
                       }}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      leftIcon={Search}
+                      variant="glass"
+                      inputSize="lg"
                     />
-                  </div>
 
-                  {/* Search Results */}
-                  {searchLoading ? (
-                    <div className="text-center py-8">
-                      <div className="text-gray-400">Searching...</div>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-400">Search Results:</p>
-                      {searchResults.map((searchUser) => (
-                        <div
-                          key={searchUser.id}
-                          className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
-                        >
-                          <div>
-                            <p className="text-white font-medium">
-                              {searchUser.firstName && searchUser.lastName 
-                                ? `${searchUser.firstName} ${searchUser.lastName}` 
-                                : searchUser.email}
-                            </p>
-                            <p className="text-gray-400 text-sm">{searchUser.email}</p>
-                          </div>
-                          <button
-                            onClick={() => handleAddMember(searchUser.id)}
-                            disabled={addingMember}
-                            className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
-                          >
-                            {addingMember ? 'Adding...' : 'Add Member'}
-                          </button>
+                    {/* Enhanced Search Results */}
+                    {searchLoading ? (
+                      <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-500 border-t-transparent mx-auto mb-4" />
+                        <div className="text-gray-400 text-lg">Searching users...</div>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="space-y-4">
+                        <p className="text-gray-300 font-medium">Search Results:</p>
+                        <div className="grid gap-3">
+                          {searchResults.map((searchUser, index) => (
+                            <Card
+                              key={searchUser.id}
+                              variant="gradient"
+                              padding="md"
+                              hoverable
+                              className="animate-slide-up group"
+                              style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
+                                    <User className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div>
+                                    <p className="text-white font-semibold text-lg">
+                                      {searchUser.firstName && searchUser.lastName 
+                                        ? `${searchUser.firstName} ${searchUser.lastName}` 
+                                        : 'User'}
+                                    </p>
+                                    <p className="text-gray-400">{searchUser.email}</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="success"
+                                  onClick={() => handleAddMember(searchUser.id)}
+                                  isLoading={addingMember}
+                                  leftIcon={Plus}
+                                  className="group-hover:scale-105"
+                                >
+                                  Add Member
+                                </Button>
+                              </div>
+                            </Card>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : memberSearchTerm.trim() && !searchLoading ? (
-                    <div className="text-center py-8">
-                      <div className="text-gray-400">No users found</div>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+                      </div>
+                    ) : memberSearchTerm.trim() && !searchLoading ? (
+                      <Card variant="bordered" padding="lg" className="text-center">
+                        <div className="py-8">
+                          <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                          <h3 className="text-white text-xl font-semibold mb-2">No users found</h3>
+                          <p className="text-gray-400">Try searching with a different email address</p>
+                        </div>
+                      </Card>
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
-            {/* Current Members */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-white mb-4">Team Members ({team.members.length})</h2>
-              <div className="space-y-3">
-                {team.members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        {member.role === 'OWNER' ? (
-                          <Crown className="h-5 w-5 text-yellow-400" />
-                        ) : member.role === 'ADMIN' ? (
-                          <Shield className="h-5 w-5 text-blue-400" />
-                        ) : (
-                          <Users className="h-5 w-5 text-gray-400" />
-                        )}
+            {/* Enhanced Current Members Section */}
+            <Card variant="glass" padding="lg" animated className="hover-lift">
+              <CardHeader icon={Users}>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Team Members</h2>
+                  <p className="text-gray-400 mt-1">{team.members.length} members in this team</p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  {team.members.map((member, index) => (
+                    <Card
+                      key={member.id}
+                      variant="gradient"
+                      padding="md"
+                      hoverable
+                      className="animate-slide-up group"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                              member.role === 'OWNER' 
+                                ? 'bg-gradient-to-br from-yellow-500 to-orange-500'
+                                : member.role === 'ADMIN'
+                                ? 'bg-gradient-to-br from-blue-500 to-cyan-500'
+                                : 'bg-gradient-to-br from-gray-500 to-gray-600'
+                            }`}>
+                              {member.role === 'OWNER' ? (
+                                <Crown className="w-7 h-7 text-white" />
+                              ) : member.role === 'ADMIN' ? (
+                                <Shield className="w-7 h-7 text-white" />
+                              ) : (
+                                <User className="w-7 h-7 text-white" />
+                              )}
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-dark-800" />
+                          </div>
+                          <div>
+                            <p className="text-white font-semibold text-lg">
+                              {member.user.firstName && member.user.lastName
+                                ? `${member.user.firstName} ${member.user.lastName}`
+                                : 'User'}
+                            </p>
+                            <p className="text-gray-400">{member.user.email}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Joined {new Date(member.joinedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge 
+                            variant={
+                              member.role === 'OWNER' ? 'warning' :
+                              member.role === 'ADMIN' ? 'info' : 'default'
+                            }
+                            size="lg"
+                            glowing={member.role === 'OWNER'}
+                          >
+                            {member.role}
+                          </Badge>
+                          {member.role !== 'OWNER' && canManageTeam(team) && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.id)}
+                              leftIcon={UserMinus}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-white font-medium">
-                          {member.user.firstName && member.user.lastName
-                            ? `${member.user.firstName} ${member.user.lastName}`
-                            : member.user.email}
-                        </p>
-                        <p className="text-gray-400 text-sm">{member.user.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        member.role === 'OWNER' 
-                          ? 'bg-yellow-500/20 text-yellow-400'
-                          : member.role === 'ADMIN'
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {member.role}
-                      </span>
-                      {member.role !== 'OWNER' && canManageTeam(team) && (
-                        <button
-                          onClick={() => handleRemoveMember(member.id)}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                          title="Remove member"
-                        >
-                          <UserMinus className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : (
-          /* Tasks Tab */
-          <div className="space-y-6">
-            {/* Create Task Section */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-white">Team Tasks</h2>
-              {canManageTeam(team) && (
-                <button
-                  onClick={() => navigate(`/teams/${team.id}/create-task`)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Task
-                </button>
-              )}
-            </div>
-
-            {/* Tasks List */}
-            {loadingTasks ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400 text-lg">Loading tasks...</div>
+          /* Enhanced Tasks Tab */
+          <div className="space-y-8 animate-fade-in">
+            {/* Enhanced Create Task Section */}
+            <Card variant="glass" padding="lg" animated className="hover-lift">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Team Tasks</h2>
+                  <p className="text-gray-400 mt-1">{teamTasks.length} tasks in this team</p>
+                </div>
+                {canManageTeam(team) && (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => navigate(`/teams/${team.id}/create-task`)}
+                    leftIcon={Plus}
+                    glowing
+                    className="hover-lift"
+                  >
+                    Create Task
+                  </Button>
+                )}
               </div>
+            </Card>
+
+            {/* Enhanced Tasks List */}
+            {loadingTasks ? (
+              <Card variant="glass" padding="xl" className="text-center">
+                <div className="py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-2 border-primary-500 border-t-transparent mx-auto mb-6" />
+                  <div className="text-gray-400 text-xl">Loading tasks...</div>
+                </div>
+              </Card>
             ) : teamTasks.length > 0 ? (
-              <div className="grid gap-4">
-                {teamTasks.map((task) => (
-                  <div
+              <div className="grid gap-6">
+                {teamTasks.map((task, index) => (
+                  <Card
                     key={task.id}
+                    variant="gradient"
+                    padding="lg"
+                    hoverable
+                    animated
                     onClick={() => handleTaskClick(task)}
-                    className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                    className="cursor-pointer group animate-slide-up"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-white font-semibold text-lg mb-2">{task.title}</h3>
-                        {task.description && (
-                          <p className="text-gray-400 mb-3">{task.description}</p>
-                        )}
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className={`px-3 py-1 rounded-full font-medium ${
-                            task.status === 'TODO' ? 'bg-gray-500/20 text-gray-400' :
-                            task.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400' :
-                            task.status === 'IN_REVIEW' ? 'bg-yellow-500/20 text-yellow-400' :
-                            task.status === 'DONE' ? 'bg-green-500/20 text-green-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {task.status}
-                          </span>
-                          <span className={`px-3 py-1 rounded-full font-medium ${
-                            task.priority === 'LOW' ? 'bg-gray-500/20 text-gray-400' :
-                            task.priority === 'MEDIUM' ? 'bg-blue-500/20 text-blue-400' :
-                            task.priority === 'HIGH' ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-white font-semibold text-xl group-hover:text-primary-300 transition-colors">
+                            {task.title}
+                          </h3>
+                          <Badge 
+                            variant={
+                              task.status === 'TODO' ? 'default' :
+                              task.status === 'IN_PROGRESS' ? 'info' :
+                              task.status === 'IN_REVIEW' ? 'warning' :
+                              task.status === 'DONE' ? 'success' :
+                              'danger'
+                            }
+                            size="md"
+                          >
+                            {task.status.replace('_', ' ')}
+                          </Badge>
+                          <Badge 
+                            variant={
+                              task.priority === 'LOW' ? 'default' :
+                              task.priority === 'MEDIUM' ? 'info' :
+                              task.priority === 'HIGH' ? 'warning' :
+                              'danger'
+                            }
+                            size="md"
+                          >
                             {task.priority}
-                          </span>
+                          </Badge>
+                        </div>
+                        
+                        {task.description && (
+                          <p className="text-gray-400 mb-4 line-clamp-2">{task.description}</p>
+                        )}
+                        
+                        <div className="flex items-center gap-6 text-sm">
                           {task.dueDate && (
-                            <span className="flex items-center gap-1 text-gray-400">
+                            <div className="flex items-center gap-2 text-gray-400">
                               <Calendar className="h-4 w-4" />
-                              {new Date(task.dueDate).toLocaleDateString()}
-                            </span>
+                              <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
+                            </div>
                           )}
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleShowComments(task);
                             }}
-                            className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors cursor-pointer"
+                            leftIcon={MessageSquare}
+                            className="text-gray-400 hover:text-primary-400"
                           >
-                            <MessageSquare className="h-4 w-4" />
-                            {task._count?.comments || 0}
-                          </button>
+                            {task._count?.comments || 0} Comments
+                          </Button>
                         </div>
                       </div>
+                      
                       {task.assignments.length > 0 && (
-                        <div className="flex flex-col items-end ml-4">
-                          <span className="text-xs text-gray-400 mb-2">Assigned to:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {task.assignments.map((assignment) => (
-                              <span
+                        <div className="flex flex-col items-end ml-6">
+                          <span className="text-xs text-gray-400 mb-3">Assigned to:</span>
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            {task.assignments.slice(0, 3).map((assignment) => (
+                              <div
                                 key={assignment.user.id}
-                                className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-primary-500/20 to-accent-500/20 text-primary-300 rounded-full text-xs border border-primary-500/30"
                               >
                                 <User className="h-3 w-3" />
-                                {assignment.user.firstName && assignment.user.lastName
-                                  ? `${assignment.user.firstName} ${assignment.user.lastName}`
-                                  : assignment.user.email}
-                              </span>
+                                <span>
+                                  {assignment.user.firstName && assignment.user.lastName
+                                    ? `${assignment.user.firstName} ${assignment.user.lastName}`
+                                    : assignment.user.email.split('@')[0]}
+                                </span>
+                              </div>
                             ))}
+                            {task.assignments.length > 3 && (
+                              <Badge variant="primary" size="sm">
+                                +{task.assignments.length - 3} more
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl">
-                <CheckSquare className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-white text-lg font-medium mb-2">No tasks yet</h3>
-                <p className="text-gray-400 mb-4">Create your first task to get started with team collaboration</p>
-                {canManageTeam(team) && (
-                  <button
-                    onClick={() => navigate(`/teams/${team.id}/create-task`)}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    Create First Task
-                  </button>
-                )}
-              </div>
+              <Card variant="glass" padding="xl" className="text-center">
+                <div className="py-12">
+                  <CheckSquare className="w-20 h-20 text-gray-600 mx-auto mb-6" />
+                  <h3 className="text-white text-2xl font-semibold mb-3">No tasks yet</h3>
+                  <p className="text-gray-400 mb-6 text-lg">Create your first task to get started with team collaboration</p>
+                  {canManageTeam(team) && (
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={() => navigate(`/teams/${team.id}/create-task`)}
+                      leftIcon={Plus}
+                      glowing
+                    >
+                      Create First Task
+                    </Button>
+                  )}
+                </div>
+              </Card>
             )}
           </div>
         )}
       </div>
 
-      {/* Comments Modal */}
-      {showCommentsModal && selectedTaskForComments && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-              Comments for "{selectedTaskForComments.title}"
-            </h3>
-            
-            {/* Comments List */}
-            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-              {loadingComments ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Loading comments...</p>
-                </div>
-              ) : comments.length > 0 ? (
-                comments.map((comment) => (
-                  <div key={comment.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm text-gray-900 dark:text-white">
-                        {comment.user?.firstName && comment.user?.lastName 
-                          ? `${comment.user.firstName} ${comment.user.lastName}`
-                          : comment.user?.email || 'Unknown User'
-                        }
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{comment.content}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
-                  No comments yet. Be the first to comment!
-                </p>
-              )}
-            </div>
-
-            {/* Add Comment Form */}
-            <form onSubmit={handleAddComment} className="space-y-3">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-                rows={3}
-                disabled={addingComment}
-              />
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={closeCommentsModal}
-                  className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="submit"
-                  disabled={addingComment || !newComment.trim()}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {addingComment ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      Add Comment
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+      {/* Enhanced Comments Modal */}
+      <Modal
+        isOpen={showCommentsModal}
+        onClose={closeCommentsModal}
+        title={`Comments for "${selectedTaskForComments?.title}"`}
+        size="lg"
+        footer={
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={closeCommentsModal}
+              fullWidth
+            >
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleAddComment}
+              isLoading={addingComment}
+              leftIcon={Send}
+              fullWidth
+              disabled={!newComment.trim()}
+            >
+              Add Comment
+            </Button>
           </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Comments List */}
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {loadingComments ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-500 border-t-transparent mx-auto mb-4" />
+                <p className="text-gray-400">Loading comments...</p>
+              </div>
+            ) : comments.length > 0 ? (
+              comments.map((comment, index) => (
+                <Card
+                  key={comment.id}
+                  variant="glass"
+                  padding="md"
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-white">
+                          {comment.user?.firstName && comment.user?.lastName 
+                            ? `${comment.user.firstName} ${comment.user.lastName}`
+                            : comment.user?.email || 'Unknown User'
+                          }
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-gray-300">{comment.content}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <Card variant="glass" padding="xl" className="text-center">
+                <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-white text-lg font-semibold mb-2">No comments yet</h3>
+                <p className="text-gray-400">Be the first to share your thoughts!</p>
+              </Card>
+            )}
+          </div>
+
+          {/* Add Comment Form */}
+          <Card variant="glass" padding="md">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Share your thoughts..."
+              className="w-full p-4 glass border-white/20 rounded-xl focus:outline-none focus:border-primary-500 focus:shadow-neon text-white placeholder-gray-400 resize-none transition-all duration-300"
+              rows={4}
+              disabled={addingComment}
+            />
+          </Card>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

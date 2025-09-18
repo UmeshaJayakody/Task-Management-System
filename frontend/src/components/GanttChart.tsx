@@ -234,7 +234,7 @@ export default function GanttChart({ tasks }: GanttChartProps) {
           <p>No tasks in this time period</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-thin timeline-scroll">
           <div className="min-w-[800px]">
             {/* Timeline Header */}
             <div className="flex border-b border-white/10 pb-2 mb-4">

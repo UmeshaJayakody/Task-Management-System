@@ -7,7 +7,6 @@ import type { Team } from '../api/teamApi';
 import type { CreateTaskData } from '../api/taskApi';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import Navbar from '../components/Navbar';
 
 export default function CreateTask() {
   const { teamId } = useParams();
@@ -119,7 +118,11 @@ export default function CreateTask() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading team...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="text-white text-xl">Loading team...</div>
+          <div className="text-gray-400 text-sm mt-2">Please wait while we fetch team data</div>
+        </div>
       </div>
     );
   }
@@ -151,8 +154,6 @@ export default function CreateTask() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Navbar />
-      
       {/* Task Header */}
       <div className="pt-20 border-b border-white/10 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">

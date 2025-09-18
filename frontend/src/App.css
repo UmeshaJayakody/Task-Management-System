@@ -1,9 +1,20 @@
 /* Enhanced dark theme animations for UI/UX */
 
 /* Dark theme base setup */
+
+body {
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  background-color: black;
+}
 html {
   scroll-behavior: smooth;
   background-color: var(--bg-primary);
+  background-color: black;
 }
 
 /* Dark theme card and component styles */

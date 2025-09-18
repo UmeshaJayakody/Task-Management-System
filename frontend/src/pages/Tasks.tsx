@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Calendar, User, AlertCircle, Clock, ChevronDown, X, MessageSquare, Send, Target, Activity, CheckCircle, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, Calendar, User, Users, AlertCircle, Clock, ChevronDown, X, MessageSquare, Send, Target, Activity, CheckCircle, Loader2 } from 'lucide-react';
 import { taskApi } from '../api/taskApi';
 import type { Task, TaskFilters, CreateTaskData } from '../api/taskApi';
 import { teamApi } from '../api/teamApi';
@@ -8,7 +8,6 @@ import { commentApi } from '../api/commentApi';
 import type { Comment, CreateCommentData } from '../api/commentApi';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import Navbar from '../components/Navbar';
 
 const statusColors = {
   TODO: 'bg-gray-500',
@@ -425,16 +424,81 @@ export default function Tasks() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="container mx-auto px-4 pt-20 py-6">
+          {/* Loading skeleton */}
+          <div className="animate-pulse">
+            {/* Statistics Cards skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="h-8 bg-gray-700 rounded w-16 mb-2"></div>
+                      <div className="h-4 bg-gray-700 rounded w-20"></div>
+                    </div>
+                    <div className="w-12 h-12 bg-gray-700 rounded-xl"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Header and Controls skeleton */}
+            <div className="mb-6">
+              <div className="h-8 bg-gray-700 rounded w-48 mb-4"></div>
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1 h-12 bg-gray-700 rounded-lg"></div>
+                <div className="h-12 w-32 bg-gray-700 rounded-lg"></div>
+                <div className="h-12 w-32 bg-gray-700 rounded-lg"></div>
+              </div>
+            </div>
+
+            {/* Filters skeleton */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
+              <div className="h-6 bg-gray-700 rounded w-24 mb-4"></div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
+
+            {/* Task Cards skeleton */}
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="h-6 bg-gray-700 rounded w-64 mb-2"></div>
+                      <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <div className="h-6 w-16 bg-gray-700 rounded"></div>
+                      <div className="h-6 w-20 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 bg-gray-700 rounded-full"></div>
+                      <div className="h-4 bg-gray-700 rounded w-24"></div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-8 bg-gray-700 rounded"></div>
+                      <div className="h-8 w-8 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <Navbar />
-
       {/* Statistics Cards */}
       {statistics && (
         <div className="container mx-auto px-4 pt-20 py-6">
@@ -631,69 +695,109 @@ export default function Tasks() {
         )}
 
         {/* Quick Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setFilters({assigneeId: user?.id})}
-            disabled={filtersLoading}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-              filters.assigneeId === user?.id && !filters.status
-                ? 'bg-green-600 text-white' 
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            } ${filtersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {filtersLoading && filters.assigneeId === user?.id && !filters.status && (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            )}
-            Assigned to Me
-          </button>
-          <button
-            onClick={() => setFilters({createdById: user?.id})}
-            disabled={filtersLoading}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-              filters.createdById === user?.id 
-                ? 'bg-purple-600 text-white' 
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            } ${filtersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {filtersLoading && filters.createdById === user?.id && (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            )}
-            Created by Me
-          </button>
-          {teams.length > 0 && (
+        <div className="mb-6">
+          {/* User-based Quick Filters */}
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => {
-                // Show tasks from teams where user is a member
-                const userTeamIds = teams
-                  .filter(team => team.members.some(member => member.user.id === user?.id))
-                  .map(team => team.id);
-                if (userTeamIds.length > 0) {
-                  setFilters({teamId: userTeamIds[0]}); // For now, just use first team. We could enhance this later
-                }
-              }}
+              onClick={() => setFilters({assigneeId: user?.id})}
               disabled={filtersLoading}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                filters.teamId && teams.some(team => team.id === filters.teamId && team.members.some(member => member.user.id === user?.id))
-                  ? 'bg-orange-600 text-white' 
-                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                filters.assigneeId === user?.id && !filters.status
+                  ? 'bg-blue-500 text-white shadow-lg border border-blue-400' 
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/20'
               } ${filtersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {filtersLoading && filters.teamId && (
+              {filtersLoading && filters.assigneeId === user?.id && !filters.status && (
                 <Loader2 className="h-3 w-3 animate-spin" />
               )}
-              My Team Tasks
+              <User className="h-3 w-3" />
+              Assigned to Me
             </button>
-          )}
+            <button
+              onClick={() => setFilters({createdById: user?.id})}
+              disabled={filtersLoading}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                filters.createdById === user?.id 
+                  ? 'bg-purple-500 text-white shadow-lg border border-purple-400' 
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/20'
+              } ${filtersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {filtersLoading && filters.createdById === user?.id && (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              )}
+              <Plus className="h-3 w-3" />
+              Created by Me
+            </button>
+            {teams.length > 0 && (
+              <button
+                onClick={() => {
+                  // Show tasks from teams where user is a member
+                  const userTeamIds = teams
+                    .filter(team => team.members.some(member => member.user.id === user?.id))
+                    .map(team => team.id);
+                  if (userTeamIds.length > 0) {
+                    setFilters({teamId: userTeamIds[0]}); // For now, just use first team. We could enhance this later
+                  }
+                }}
+                disabled={filtersLoading}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                  filters.teamId && teams.some(team => team.id === filters.teamId && team.members.some(member => member.user.id === user?.id))
+                    ? 'bg-orange-500 text-white shadow-lg border border-orange-400' 
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/20'
+                } ${filtersLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {filtersLoading && filters.teamId && (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                )}
+                <Users className="h-3 w-3" />
+                My Team Tasks
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tasks List */}
         <div className="space-y-6">
           {filtersLoading ? (
-            <div className="text-center py-16">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-12 max-w-md mx-auto">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-400 mx-auto mb-4" />
-                <div className="text-gray-400 text-xl mb-3">Loading tasks...</div>
-                <p className="text-gray-500">Please wait while we fetch your tasks</p>
+            <div className="space-y-4">
+              {/* Enhanced skeleton loading for task cards */}
+              <div className="animate-pulse">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-4">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-6 bg-gray-700 rounded w-48"></div>
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-20 bg-gray-700 rounded-full"></div>
+                            <div className="h-6 w-16 bg-gray-700 rounded-full"></div>
+                          </div>
+                        </div>
+                        <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+                        <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-8 h-8 bg-gray-700 rounded-full"></div>
+                        <div className="h-4 bg-gray-700 rounded w-24"></div>
+                        <div className="h-4 bg-gray-700 rounded w-20"></div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="h-8 w-8 bg-gray-700 rounded"></div>
+                        <div className="h-8 w-8 bg-gray-700 rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Loading indicator */}
+              <div className="text-center py-8">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 max-w-md mx-auto">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-400 mx-auto mb-4" />
+                  <div className="text-gray-400 text-lg mb-2">Filtering tasks...</div>
+                  <p className="text-gray-500">Please wait while we update your task list</p>
+                </div>
               </div>
             </div>
           ) : tasks.length === 0 ? (
