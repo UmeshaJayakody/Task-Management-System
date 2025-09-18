@@ -1,10 +1,10 @@
-import request from 'supertest';
-import express from 'express';
 import { TeamRole } from '@prisma/client';
-import teamRoutes from '../src/routes/team.routes';
+import express from 'express';
+import request from 'supertest';
 import { errorHandler } from '../src/middlewares/error.middleware';
+import teamRoutes from '../src/routes/team.routes';
+import { createAuthHeaders, createTestTeam, createTestUser, generateAuthToken } from './helpers';
 import { prisma } from './setup';
-import { createTestUser, createTestTeam, generateAuthToken, createAuthHeaders } from './helpers';
 
 const app = express();
 app.use(express.json());
@@ -394,6 +394,407 @@ describe('Team Management', () => {
 
       expect(response.body.success).toBe(false);
       expect(response.body.message).toContain('cannot remove owner');
+    });
+  });
+
+  describe('Team Permissions and Authorization', () => {
+    let team: any;
+    let admin: any;
+    let member: any;
+    let outsider: any;
+    let adminToken: string;
+    let memberToken: string;
+    let outsiderToken: string;
+
+    beforeEach(async () => {
+      team = await createTestTeam(user.id);
+      admin = await createTestUser({ email: 'admin@example.com' });
+      member = await createTestUser({ email: 'member@example.com' });
+      outsider = await createTestUser({ email: 'outsider@example.com' });
+
+      adminToken = generateAuthToken(admin.id);
+      memberToken = generateAuthToken(member.id);
+      outsiderToken = generateAuthToken(outsider.id);
+
+      // Add admin and member to team
+      await prisma.teamMember.create({
+        data: { userId: admin.id, teamId: team.id, role: TeamRole.ADMIN },
+      });
+      await prisma.teamMember.create({
+        data: { userId: member.id, teamId: team.id, role: TeamRole.MEMBER },
+      });
+    });
+
+    it('should allow owners to add members', async () => {
+      const newMember = await createTestUser({ email: 'newmember@example.com' });
+
+      const response = await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(token))
+        .send({ userId: newMember.id, role: TeamRole.MEMBER })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should allow admins to add members', async () => {
+      const newMember = await createTestUser({ email: 'newmember2@example.com' });
+
+      const response = await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(adminToken))
+        .send({ userId: newMember.id, role: TeamRole.MEMBER })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should prevent members from adding other members', async () => {
+      const newMember = await createTestUser({ email: 'newmember3@example.com' });
+
+      const response = await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(memberToken))
+        .send({ userId: newMember.id, role: TeamRole.MEMBER })
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should prevent outsiders from accessing team', async () => {
+      const response = await request(app)
+        .get(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(outsiderToken))
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should allow members to view team details', async () => {
+      const response = await request(app)
+        .get(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(memberToken))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.id).toBe(team.id);
+    });
+
+    it('should prevent members from updating team settings', async () => {
+      const response = await request(app)
+        .put(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(memberToken))
+        .send({ name: 'Updated Team Name' })
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should allow admins to update team settings', async () => {
+      const response = await request(app)
+        .put(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(adminToken))
+        .send({ name: 'Updated by Admin' })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.name).toBe('Updated by Admin');
+    });
+  });
+
+  describe('Team Role Management', () => {
+    let team: any;
+    let member: any;
+
+    beforeEach(async () => {
+      team = await createTestTeam(user.id);
+      member = await createTestUser({ email: 'roletest@example.com' });
+
+      await prisma.teamMember.create({
+        data: { userId: member.id, teamId: team.id, role: TeamRole.MEMBER },
+      });
+    });
+
+    it('should promote member to admin', async () => {
+      const response = await request(app)
+        .put(`/api/teams/${team.id}/members/${member.id}/role`)
+        .set(createAuthHeaders(token))
+        .send({ role: TeamRole.ADMIN })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      const membership = await prisma.teamMember.findFirst({
+        where: { teamId: team.id, userId: member.id },
+      });
+
+      expect(membership?.role).toBe(TeamRole.ADMIN);
+    });
+
+    it('should demote admin to member', async () => {
+      // First promote to admin
+      await prisma.teamMember.update({
+        where: { userId_teamId: { userId: member.id, teamId: team.id } },
+        data: { role: TeamRole.ADMIN },
+      });
+
+      const response = await request(app)
+        .put(`/api/teams/${team.id}/members/${member.id}/role`)
+        .set(createAuthHeaders(token))
+        .send({ role: TeamRole.MEMBER })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      const membership = await prisma.teamMember.findFirst({
+        where: { teamId: team.id, userId: member.id },
+      });
+
+      expect(membership?.role).toBe(TeamRole.MEMBER);
+    });
+
+    it('should prevent changing owner role', async () => {
+      const response = await request(app)
+        .put(`/api/teams/${team.id}/members/${user.id}/role`)
+        .set(createAuthHeaders(token))
+        .send({ role: TeamRole.MEMBER })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('owner');
+    });
+
+    it('should validate role values', async () => {
+      const response = await request(app)
+        .put(`/api/teams/${team.id}/members/${member.id}/role`)
+        .set(createAuthHeaders(token))
+        .send({ role: 'INVALID_ROLE' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('Team Statistics and Analytics', () => {
+    let team: any;
+
+    beforeEach(async () => {
+      team = await createTestTeam(user.id);
+
+      // Add multiple members
+      for (let i = 0; i < 3; i++) {
+        const member = await createTestUser({ email: `member${i}@example.com` });
+        await prisma.teamMember.create({
+          data: { userId: member.id, teamId: team.id, role: TeamRole.MEMBER },
+        });
+      }
+
+      // Add an admin
+      const admin = await createTestUser({ email: 'admin@example.com' });
+      await prisma.teamMember.create({
+        data: { userId: admin.id, teamId: team.id, role: TeamRole.ADMIN },
+      });
+    });
+
+    it('should get team statistics', async () => {
+      const response = await request(app)
+        .get(`/api/teams/${team.id}/stats`)
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toMatchObject({
+        memberCount: 5, // owner + 3 members + 1 admin
+        roleDistribution: {
+          [TeamRole.OWNER]: 1,
+          [TeamRole.ADMIN]: 1,
+          [TeamRole.MEMBER]: 3,
+        },
+      });
+    });
+
+    it('should get team activity summary', async () => {
+      // Create some team tasks first
+      await prisma.task.create({
+        data: {
+          title: 'Team Task 1',
+          createdById: user.id,
+          teamId: team.id,
+        },
+      });
+
+      const response = await request(app)
+        .get(`/api/teams/${team.id}/activity`)
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.taskCount).toBe(1);
+    });
+  });
+
+  describe('Team Search and Discovery', () => {
+    beforeEach(async () => {
+      await createTestTeam(user.id, {
+        name: 'Engineering Team',
+        description: 'Software development team'
+      });
+      await createTestTeam(user.id, {
+        name: 'Marketing Team',
+        description: 'Product marketing and promotion'
+      });
+      await createTestTeam(user.id, {
+        name: 'Sales Engineering',
+        description: 'Technical sales support'
+      });
+    });
+
+    it('should search teams by name', async () => {
+      const response = await request(app)
+        .get('/api/teams/search')
+        .query({ q: 'Engineering' })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(2);
+      expect(response.body.data.every((team: any) =>
+        team.name.includes('Engineering')
+      )).toBe(true);
+    });
+
+    it('should search teams by description', async () => {
+      const response = await request(app)
+        .get('/api/teams/search')
+        .query({ q: 'marketing' })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].name).toBe('Marketing Team');
+    });
+  });
+
+  describe('Team Deletion and Cleanup', () => {
+    it('should delete team and clean up related data', async () => {
+      const team = await createTestTeam(user.id);
+
+      // Create some team data
+      const task = await prisma.task.create({
+        data: {
+          title: 'Team Task',
+          createdById: user.id,
+          teamId: team.id,
+        },
+      });
+
+      const response = await request(app)
+        .delete(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+
+      // Verify team is deleted
+      const deletedTeam = await prisma.team.findUnique({
+        where: { id: team.id },
+      });
+      expect(deletedTeam).toBeNull();
+
+      // Verify team members are cleaned up
+      const members = await prisma.teamMember.findMany({
+        where: { teamId: team.id },
+      });
+      expect(members).toHaveLength(0);
+
+      // Verify tasks are handled appropriately (likely set teamId to null)
+      const orphanedTask = await prisma.task.findUnique({
+        where: { id: task.id },
+      });
+      expect(orphanedTask?.teamId).toBeNull();
+    });
+
+    it('should only allow owner to delete team', async () => {
+      const team = await createTestTeam(user.id);
+      const member = await createTestUser({ email: 'member@example.com' });
+      const memberToken = generateAuthToken(member.id);
+
+      await prisma.teamMember.create({
+        data: { userId: member.id, teamId: team.id, role: TeamRole.ADMIN },
+      });
+
+      const response = await request(app)
+        .delete(`/api/teams/${team.id}`)
+        .set(createAuthHeaders(memberToken))
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle team name conflicts', async () => {
+      const teamName = 'Duplicate Team Name';
+
+      await createTestTeam(user.id, { name: teamName });
+
+      const response = await request(app)
+        .post('/api/teams')
+        .set(createAuthHeaders(token))
+        .send({ name: teamName, description: 'Another team' })
+        .expect(409);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('already exists');
+    });
+
+    it('should handle adding non-existent user to team', async () => {
+      const team = await createTestTeam(user.id);
+
+      const response = await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(token))
+        .send({ userId: 'non-existent-id', role: TeamRole.MEMBER })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('User not found');
+    });
+
+    it('should handle adding already existing member', async () => {
+      const team = await createTestTeam(user.id);
+      const member = await createTestUser({ email: 'existing@example.com' });
+
+      // Add member first time
+      await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(token))
+        .send({ userId: member.id, role: TeamRole.MEMBER })
+        .expect(200);
+
+      // Try to add same member again
+      const response = await request(app)
+        .post(`/api/teams/${team.id}/members`)
+        .set(createAuthHeaders(token))
+        .send({ userId: member.id, role: TeamRole.MEMBER })
+        .expect(409);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('already a member');
+    });
+
+    it('should validate team name length', async () => {
+      const longName = 'a'.repeat(256);
+
+      const response = await request(app)
+        .post('/api/teams')
+        .set(createAuthHeaders(token))
+        .send({ name: longName, description: 'Test' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('validation');
     });
   });
 });

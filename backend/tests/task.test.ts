@@ -1,10 +1,10 @@
-import request from 'supertest';
+import { TaskPriority, TaskStatus, TeamRole } from '@prisma/client';
 import express from 'express';
-import { TaskStatus, TaskPriority } from '@prisma/client';
-import taskRoutes from '../src/routes/task.routes';
+import request from 'supertest';
 import { errorHandler } from '../src/middlewares/error.middleware';
+import taskRoutes from '../src/routes/task.routes';
+import { createAuthHeaders, createTestTask, createTestTeam, createTestUser, generateAuthToken } from './helpers';
 import { prisma } from './setup';
-import { createTestUser, createTestTask, createTestTeam, generateAuthToken, createAuthHeaders } from './helpers';
 
 const app = express();
 app.use(express.json());
@@ -303,6 +303,378 @@ describe('Task Management', () => {
       });
 
       expect(assignment).toBeNull();
+    });
+  });
+
+  describe('Task Status Management', () => {
+    it('should update task status', async () => {
+      const task = await createTestTask(user.id);
+
+      const response = await request(app)
+        .put(`/api/tasks/${task.id}/status`)
+        .set(createAuthHeaders(token))
+        .send({ status: TaskStatus.IN_PROGRESS })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.status).toBe(TaskStatus.IN_PROGRESS);
+
+      // Verify status update in database
+      const updatedTask = await prisma.task.findUnique({
+        where: { id: task.id },
+      });
+
+      expect(updatedTask?.status).toBe(TaskStatus.IN_PROGRESS);
+    });
+
+    it('should track completion time when status changes to DONE', async () => {
+      const task = await createTestTask(user.id);
+
+      const response = await request(app)
+        .put(`/api/tasks/${task.id}/status`)
+        .set(createAuthHeaders(token))
+        .send({ status: TaskStatus.DONE })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.completedAt).toBeDefined();
+
+      // Verify completion time in database
+      const updatedTask = await prisma.task.findUnique({
+        where: { id: task.id },
+      });
+
+      expect(updatedTask?.completedAt).toBeDefined();
+    });
+
+    it('should validate status transitions', async () => {
+      const task = await createTestTask(user.id);
+
+      const response = await request(app)
+        .put(`/api/tasks/${task.id}/status`)
+        .set(createAuthHeaders(token))
+        .send({ status: 'INVALID_STATUS' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('validation');
+    });
+  });
+
+  describe('Task Priority Management', () => {
+    it('should update task priority', async () => {
+      const task = await createTestTask(user.id, { priority: TaskPriority.LOW });
+
+      const response = await request(app)
+        .put(`/api/tasks/${task.id}/priority`)
+        .set(createAuthHeaders(token))
+        .send({ priority: TaskPriority.URGENT })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.priority).toBe(TaskPriority.URGENT);
+    });
+
+    it('should validate priority values', async () => {
+      const task = await createTestTask(user.id);
+
+      const response = await request(app)
+        .put(`/api/tasks/${task.id}/priority`)
+        .set(createAuthHeaders(token))
+        .send({ priority: 'INVALID_PRIORITY' })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('Task Filtering and Searching', () => {
+    beforeEach(async () => {
+      // Create tasks with different attributes for filtering
+      await createTestTask(user.id, {
+        title: 'High Priority Task',
+        priority: TaskPriority.HIGH,
+        status: TaskStatus.TODO
+      });
+      await createTestTask(user.id, {
+        title: 'Urgent Bug Fix',
+        priority: TaskPriority.URGENT,
+        status: TaskStatus.IN_PROGRESS
+      });
+      await createTestTask(user.id, {
+        title: 'Low Priority Feature',
+        priority: TaskPriority.LOW,
+        status: TaskStatus.DONE
+      });
+    });
+
+    it('should filter tasks by status', async () => {
+      const response = await request(app)
+        .get('/api/tasks')
+        .query({ status: TaskStatus.IN_PROGRESS })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].title).toBe('Urgent Bug Fix');
+    });
+
+    it('should filter tasks by priority', async () => {
+      const response = await request(app)
+        .get('/api/tasks')
+        .query({ priority: TaskPriority.URGENT })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].priority).toBe(TaskPriority.URGENT);
+    });
+
+    it('should search tasks by title', async () => {
+      const response = await request(app)
+        .get('/api/tasks/search')
+        .query({ q: 'Bug' })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].title).toContain('Bug');
+    });
+
+    it('should filter tasks by due date range', async () => {
+      const futureDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+      await createTestTask(user.id, {
+        title: 'Future Task',
+        dueDate: futureDate
+      });
+
+      const response = await request(app)
+        .get('/api/tasks')
+        .query({
+          dueBefore: futureDate.toISOString(),
+          dueAfter: new Date().toISOString()
+        })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.some((task: any) => task.title === 'Future Task')).toBe(true);
+    });
+  });
+
+  describe('Task Sorting', () => {
+    beforeEach(async () => {
+      // Create tasks with different creation times and priorities
+      await createTestTask(user.id, {
+        title: 'First Task',
+        priority: TaskPriority.LOW
+      });
+      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await createTestTask(user.id, {
+        title: 'Second Task',
+        priority: TaskPriority.HIGH
+      });
+    });
+
+    it('should sort tasks by creation date', async () => {
+      const response = await request(app)
+        .get('/api/tasks')
+        .query({ sortBy: 'createdAt', sortOrder: 'desc' })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data[0].title).toBe('Second Task');
+    });
+
+    it('should sort tasks by priority', async () => {
+      const response = await request(app)
+        .get('/api/tasks')
+        .query({ sortBy: 'priority', sortOrder: 'desc' })
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data[0].priority).toBe(TaskPriority.HIGH);
+    });
+  });
+
+  describe('Team Task Management', () => {
+    let teamMember: any;
+    let otherTeam: any;
+
+    beforeEach(async () => {
+      teamMember = await createTestUser();
+      await prisma.teamMember.create({
+        data: {
+          userId: teamMember.id,
+          teamId: team.id,
+          role: TeamRole.MEMBER,
+        },
+      });
+
+      // Create another team for permission testing
+      otherTeam = await createTestTeam(teamMember.id);
+    });
+
+    it('should allow team members to view team tasks', async () => {
+      const teamTask = await createTestTask(user.id, { teamId: team.id });
+      const memberToken = generateAuthToken(teamMember.id);
+
+      const response = await request(app)
+        .get(`/api/tasks/${teamTask.id}`)
+        .set(createAuthHeaders(memberToken))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.id).toBe(teamTask.id);
+    });
+
+    it('should prevent non-team members from viewing team tasks', async () => {
+      const teamTask = await createTestTask(user.id, { teamId: team.id });
+      const outsider = await createTestUser();
+      const outsiderToken = generateAuthToken(outsider.id);
+
+      const response = await request(app)
+        .get(`/api/tasks/${teamTask.id}`)
+        .set(createAuthHeaders(outsiderToken))
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should allow task creation within team', async () => {
+      const memberToken = generateAuthToken(teamMember.id);
+
+      const taskData = {
+        title: 'Team Member Task',
+        description: 'Task created by team member',
+        teamId: team.id,
+        assigneeIds: [teamMember.id],
+      };
+
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(createAuthHeaders(memberToken))
+        .send(taskData)
+        .expect(201);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.teamId).toBe(team.id);
+    });
+  });
+
+  describe('Task Validation and Error Handling', () => {
+    it('should validate required fields', async () => {
+      const invalidTaskData = {
+        description: 'Missing title',
+      };
+
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(createAuthHeaders(token))
+        .send(invalidTaskData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('validation');
+    });
+
+    it('should validate due date format', async () => {
+      const taskData = {
+        title: 'Test Task',
+        dueDate: 'invalid-date-format',
+      };
+
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(createAuthHeaders(token))
+        .send(taskData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should prevent assigning to non-existent users', async () => {
+      const taskData = {
+        title: 'Test Task',
+        assigneeIds: ['non-existent-user-id'],
+      };
+
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(createAuthHeaders(token))
+        .send(taskData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should handle very long task titles and descriptions', async () => {
+      const longTitle = 'a'.repeat(1000);
+      const longDescription = 'b'.repeat(5000);
+
+      const taskData = {
+        title: longTitle,
+        description: longDescription,
+      };
+
+      const response = await request(app)
+        .post('/api/tasks')
+        .set(createAuthHeaders(token))
+        .send(taskData)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('validation');
+    });
+  });
+
+  describe('Task Analytics and Reporting', () => {
+    beforeEach(async () => {
+      // Create tasks with different statuses for analytics
+      await createTestTask(user.id, { status: TaskStatus.TODO });
+      await createTestTask(user.id, { status: TaskStatus.IN_PROGRESS });
+      await createTestTask(user.id, { status: TaskStatus.DONE });
+      await createTestTask(user.id, { status: TaskStatus.DONE });
+    });
+
+    it('should get task statistics', async () => {
+      const response = await request(app)
+        .get('/api/tasks/stats')
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toMatchObject({
+        total: 4,
+        byStatus: {
+          [TaskStatus.TODO]: 1,
+          [TaskStatus.IN_PROGRESS]: 1,
+          [TaskStatus.DONE]: 2,
+        },
+      });
+    });
+
+    it('should get overdue tasks', async () => {
+      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // Yesterday
+      await createTestTask(user.id, {
+        title: 'Overdue Task',
+        dueDate: pastDate,
+        status: TaskStatus.TODO
+      });
+
+      const response = await request(app)
+        .get('/api/tasks/overdue')
+        .set(createAuthHeaders(token))
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBe(1);
+      expect(response.body.data[0].title).toBe('Overdue Task');
     });
   });
 });

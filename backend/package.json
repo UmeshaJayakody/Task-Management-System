@@ -12,7 +12,17 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:unit": "jest --testPathPattern=tests/.*\\.test\\.ts$",
+    "test:integration": "jest --testPathPattern=tests/.*\\.integration\\.test\\.ts$",
+    "test:services": "jest --testPathPattern=tests/.*\\.service\\.test\\.ts$",
+    "test:e2e": "jest --testPathPattern=tests/.*\\.e2e\\.test\\.ts$",
+    "test:setup": "node test-runner.js --skip-lint --skip-type-check",
+    "test:full": "node test-runner.js --coverage --cleanup",
+    "test:quick": "node test-runner.js --skip-lint --skip-type-check",
+    "test:validate": "node validate-tests.js",
+    "test:db:reset": "dotenv -e .env.test -- npx prisma migrate reset --force",
+    "test:db:setup": "dotenv -e .env.test -- npx prisma migrate deploy"
   },
   "author": "Umesha J.A.U.C.",
   "license": "ISC",

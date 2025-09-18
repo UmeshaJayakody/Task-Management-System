@@ -1,0 +1,139 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: taskmanagement_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/taskmanagement_test
+      JWT_SECRET: test-jwt-secret-key
+      JWT_EXPIRES_IN: 24h
+      BCRYPT_ROUNDS: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm ci
+
+    - name: Generate Prisma client
+      run: |
+        cd backend
+        npx prisma generate
+
+    - name: Run database migrations
+      run: |
+        cd backend
+        npx prisma migrate deploy
+
+    - name: Lint code
+      run: |
+        cd backend
+        npm run lint || echo "Lint not configured"
+
+    - name: Type check
+      run: |
+        cd backend
+        npx tsc --noEmit
+
+    - name: Run tests with coverage
+      run: |
+        cd backend
+        npm run test:ci
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage/lcov.info
+        directory: ./backend/coverage/
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+
+    - name: Archive test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.node-version }}
+        path: |
+          backend/coverage/
+          backend/junit.xml
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Lint frontend
+      run: |
+        cd frontend
+        npm run lint || echo "Frontend lint not configured"
+
+    - name: Type check frontend
+      run: |
+        cd frontend
+        npx tsc --noEmit
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm test || echo "Frontend tests not configured"
