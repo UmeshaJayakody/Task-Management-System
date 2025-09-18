@@ -435,6 +435,36 @@
   color: white;
 }
 
+/* New styles for completed and mixed status tasks */
+.calendar-day-completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  animation: pulseCompleted 3s infinite;
+}
+
+.calendar-day-mixed-status {
+  background: linear-gradient(135deg, #f59e0b, #10b981);
+  color: white;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+  border: 2px solid rgba(245, 158, 11, 0.6);
+  position: relative;
+}
+
+/* Add a small indicator for mixed status */
+.calendar-day-mixed-status::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 1px solid white;
+}
+
 /* Calendar animations */
 @keyframes pulseDueDate {
   0%, 100% {
@@ -442,6 +472,15 @@
   }
   50% {
     box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+  }
+}
+
+@keyframes pulseCompleted {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
   }
 }
 

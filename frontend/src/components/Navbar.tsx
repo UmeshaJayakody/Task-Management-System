@@ -38,14 +38,12 @@ export default function Navbar() {
   };
 
   const goToSchedule = () => {
-    // TODO: Implement schedule/calendar page
-    console.log('Navigate to schedule');
+    navigate('/schedule');
     setShowMobileMenu(false);
   };
 
   const goToAnalytics = () => {
-    // TODO: Implement analytics page
-    console.log('Navigate to analytics');
+    navigate('/analytics');
     setShowMobileMenu(false);
   };
 

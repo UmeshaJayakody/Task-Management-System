@@ -158,6 +158,10 @@ export default function Dashboard() {
           return false;
         }
       });
+
+      // Separate completed and incomplete tasks for this date
+      const completedTasksForDate = tasksForDate.filter(task => task.status === 'DONE');
+      const incompleteTasksForDate = tasksForDate.filter(task => task.status !== 'DONE');
       
       // Also check for tasks created or updated on this date for activity
       const allTasksForDate = tasks.filter(task => {
@@ -183,7 +187,11 @@ export default function Dashboard() {
         hasDueDate: tasksForDate.length > 0,
         taskCount: Math.max(tasksForDate.length, allTasksForDate.length),
         dueTasks: tasksForDate,
-        allTasks: allTasksForDate
+        allTasks: allTasksForDate,
+        completedTasks: completedTasksForDate,
+        incompleteTasks: incompleteTasksForDate,
+        hasCompletedTasks: completedTasksForDate.length > 0,
+        hasIncompleteTasks: incompleteTasksForDate.length > 0
       });
     }
     
@@ -583,9 +591,23 @@ export default function Dashboard() {
                   dayClasses += 'calendar-day-today ';
                 }
                 
-                // Due date styling (red for due dates)
+                // Priority order for task status colors:
+                // 1. If has both completed and incomplete tasks - show mixed color
+                // 2. If only completed tasks - show green
+                // 3. If only incomplete tasks - show red/orange
+                // 4. Activity level for non-due tasks
+                
                 if (calendarDay.hasDueDate && !calendarDay.isToday) {
-                  dayClasses += 'calendar-day-due-date ';
+                  if (calendarDay.hasCompletedTasks && calendarDay.hasIncompleteTasks) {
+                    // Mixed: both completed and incomplete tasks on same day
+                    dayClasses += 'calendar-day-mixed-status ';
+                  } else if (calendarDay.hasCompletedTasks && !calendarDay.hasIncompleteTasks) {
+                    // All tasks completed - green
+                    dayClasses += 'calendar-day-completed ';
+                  } else if (calendarDay.hasIncompleteTasks && !calendarDay.hasCompletedTasks) {
+                    // All tasks incomplete - red/orange
+                    dayClasses += 'calendar-day-due-date ';
+                  }
                 }
                 
                 // Activity level based on task count (only if no due dates and not today)
@@ -604,15 +626,35 @@ export default function Dashboard() {
                 if (calendarDay.isToday) {
                   tooltipText = 'Today';
                   if (calendarDay.hasDueDate) {
-                    tooltipText += ` • ${calendarDay.dueTasks?.length || 0} due`;
+                    const completedCount = calendarDay.completedTasks?.length || 0;
+                    const incompleteCount = calendarDay.incompleteTasks?.length || 0;
+                    if (completedCount > 0 && incompleteCount > 0) {
+                      tooltipText += ` • ${completedCount} completed, ${incompleteCount} due`;
+                    } else if (completedCount > 0) {
+                      tooltipText += ` • ${completedCount} completed`;
+                    } else if (incompleteCount > 0) {
+                      tooltipText += ` • ${incompleteCount} due`;
+                    }
                   }
                   if (calendarDay.taskCount > (calendarDay.dueTasks?.length || 0)) {
                     tooltipText += ` • ${calendarDay.taskCount - (calendarDay.dueTasks?.length || 0)} active`;
                   }
                 } else if (calendarDay.hasDueDate) {
-                  tooltipText = `${calendarDay.dueTasks?.length || 0} task${(calendarDay.dueTasks?.length || 0) > 1 ? 's' : ''} due`;
+                  const completedCount = calendarDay.completedTasks?.length || 0;
+                  const incompleteCount = calendarDay.incompleteTasks?.length || 0;
+                  
+                  if (completedCount > 0 && incompleteCount > 0) {
+                    tooltipText = `${completedCount} completed, ${incompleteCount} due`;
+                  } else if (completedCount > 0) {
+                    tooltipText = `${completedCount} task${completedCount > 1 ? 's' : ''} completed`;
+                  } else if (incompleteCount > 0) {
+                    tooltipText = `${incompleteCount} task${incompleteCount > 1 ? 's' : ''} due`;
+                  }
+                  
                   if (calendarDay.dueTasks && calendarDay.dueTasks.length > 0) {
-                    tooltipText += '\n' + calendarDay.dueTasks.map(task => `• ${task.title}`).join('\n');
+                    tooltipText += '\n' + calendarDay.dueTasks.map(task => 
+                      `• ${task.title} ${task.status === 'DONE' ? '(✓ Completed)' : '(Due)'}`
+                    ).join('\n');
                   }
                 } else if (calendarDay.taskCount > 0) {
                   tooltipText = `${calendarDay.taskCount} task${calendarDay.taskCount > 1 ? 's' : ''} active`;
@@ -642,20 +684,24 @@ export default function Dashboard() {
                 <span className="text-gray-400">No activity</span>
               </div>
               <div className="flex items-center">
-                <div className="w-2.5 h-2.5 rounded calendar-day-activity-low mr-1.5"></div>
-                <span className="text-gray-400">Low</span>
+                <div className="w-2.5 h-2.5 rounded calendar-day-completed mr-1.5"></div>
+                <span className="text-gray-400">Completed</span>
               </div>
               <div className="flex items-center">
-                <div className="w-2.5 h-2.5 rounded calendar-day-activity-high mr-1.5"></div>
-                <span className="text-gray-400">High</span>
+                <div className="w-2.5 h-2.5 rounded calendar-day-due-date mr-1.5"></div>
+                <span className="text-gray-400">Due/Incomplete</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-2.5 h-2.5 rounded calendar-day-mixed-status mr-1.5"></div>
+                <span className="text-gray-400">Mixed Status</span>
               </div>
               <div className="flex items-center">
                 <div className="w-2.5 h-2.5 rounded calendar-day-today mr-1.5"></div>
                 <span className="text-gray-400">Today</span>
               </div>
               <div className="flex items-center">
-                <div className="w-2.5 h-2.5 rounded calendar-day-due-date mr-1.5"></div>
-                <span className="text-gray-400">Due dates</span>
+                <div className="w-2.5 h-2.5 rounded calendar-day-activity-low mr-1.5"></div>
+                <span className="text-gray-400">Activity</span>
               </div>
             </div>
           </div>

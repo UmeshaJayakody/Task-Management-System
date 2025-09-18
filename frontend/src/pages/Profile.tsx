@@ -220,31 +220,6 @@ export default function Profile() {
                   placeholder="Tell us about yourself..."
                 />
               </div>
-
-              {/* Account Status */}
-              <div className="bg-white/5 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-300 mb-2">Account Status</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Status:</span>
-                    <span className={`text-sm ${user?.isActive ? 'text-green-400' : 'text-red-400'}`}>
-                      {user?.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Email Verified:</span>
-                    <span className={`text-sm ${user?.isEmailVerified ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {user?.isEmailVerified ? 'Verified' : 'Pending'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Member Since:</span>
-                    <span className="text-gray-300 text-sm">
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

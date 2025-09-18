@@ -11,6 +11,8 @@ import Teams from './pages/Teams';
 import TeamManagement from './pages/TeamManagement';
 import CreateTask from './pages/CreateTask';
 import Profile from './pages/Profile';
+import Schedule from './pages/Schedule';
+import Analytics from './pages/Analytics';
 import './App.css';
 
 function App() {
@@ -70,6 +72,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/schedule" 
+                element={
+                  <ProtectedRoute>
+                    <Schedule />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
                   </ProtectedRoute>
                 } 
               />
