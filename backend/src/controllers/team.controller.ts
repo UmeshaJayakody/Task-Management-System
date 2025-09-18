@@ -23,7 +23,11 @@ export const createTeamController = async (req: Request, res: Response, next: Ne
     const team = await createTeam(userId, req.body);
     console.log('✅ Team created successfully:', team);
     
-    res.status(201).json({ message: 'Team created successfully', team });
+    res.status(201).json({ 
+      success: true,
+      message: 'Team created successfully', 
+      team 
+    });
   } catch (error) {
     console.error('❌ Error in team controller:', error);
     next(error);

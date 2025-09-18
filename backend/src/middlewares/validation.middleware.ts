@@ -36,7 +36,7 @@ export default (schema: any, source = 'body') => (req: Request, res: Response, n
     
     res.status(400).json({ 
       success: false,
-      message: 'Validation failed',
+      message: error.details[0].message,
       errors: error.details.map((detail: any) => ({
         field: detail.path.join('.'),
         message: detail.message

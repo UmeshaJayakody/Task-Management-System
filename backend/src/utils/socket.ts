@@ -189,13 +189,6 @@ class SocketService {
             id: true,
             name: true
           }
-        },
-        task: {
-          select: {
-            id: true,
-            title: true,
-            status: true
-          }
         }
       }
     });

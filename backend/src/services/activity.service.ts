@@ -35,13 +35,6 @@ export const createActivity = async (activityData: CreateActivityData) => {
           id: true,
           name: true
         }
-      },
-      task: {
-        select: {
-          id: true,
-          title: true,
-          status: true
-        }
       }
     }
   });
@@ -111,13 +104,6 @@ export const getActivities = async (
         select: {
           id: true,
           name: true
-        }
-      },
-      task: {
-        select: {
-          id: true,
-          title: true,
-          status: true
         }
       }
     }

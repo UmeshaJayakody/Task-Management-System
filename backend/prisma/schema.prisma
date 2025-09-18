@@ -84,7 +84,6 @@ model Task {
   team                  Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
   assignments           TaskAssignment[]
   comments              Comment[]
-  activities            Activity[]
   
   // Task Dependencies
   dependentOn           TaskDependency[] @relation("DependentTask")
@@ -160,7 +159,6 @@ model Activity {
   // Relationships
   user                  User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   team                  Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  task                  Task?            @relation(fields: [entityId], references: [id], onDelete: Cascade)
   
   @@index([entityType, entityId])
   @@index([userId])

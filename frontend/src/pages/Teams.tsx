@@ -85,19 +85,40 @@ export default function Teams() {
       setCreating(true);
       console.log('🚀 Creating team with data:', createTeamForm);
       
-      const response = await teamApi.createTeam(createTeamForm);
+      const response = await teamApi.createTeam({
+        name: createTeamForm.name.trim(),
+        description: createTeamForm.description.trim() || undefined
+      });
+      
       console.log('✅ Team created successfully:', response);
       
-      toast.success('Team created successfully');
-      setShowCreateModal(false);
+      // Show success message
+      toast.success(response.message || 'Team created successfully');
+      
+      // Reset form and close modal
       setCreateTeamForm({ name: '', description: '' });
+      setShowCreateModal(false);
+      
+      // Reload teams to show the new team
       await loadTeams();
     } catch (error: any) {
       console.error('❌ Error creating team:', error);
-      toast.error(error.message || 'Failed to create team');
+      
+      // Show specific error message from server or generic message
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          'Failed to create team. Please try again.';
+      
+      toast.error(errorMessage);
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleCancelCreate = () => {
+    setCreateTeamForm({ name: '', description: '' });
+    setShowCreateModal(false);
+    setCreating(false);
   };
 
   const handleFormChange = (field: keyof CreateTeamData, value: string) => {
@@ -265,7 +286,15 @@ export default function Teams() {
 
       {/* Create Team Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget && !creating) {
+              handleCancelCreate();
+            }
+          }}
+        >
           <div className="bg-gray-900 border border-white/20 rounded-xl p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-white mb-4">Create New Team</h2>
             
@@ -299,8 +328,9 @@ export default function Teams() {
             
             <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                onClick={handleCancelCreate}
+                disabled={creating}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white rounded-lg transition-colors"
               >
                 Cancel
               </button>
