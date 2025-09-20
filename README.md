@@ -1,6 +1,6 @@
 # Task Management System
 
-A comprehensive full-stack task management application built with modern web technologies. This system supports user authentication, team collaboration, task management with dependencies, real-time updates, and comprehensive testing infrastructure.
+A comprehensive full-stack task management application built with modern web technologies. This system supports user authentication, team collaboration, task management with dependencies, real-time updates
 
 ## Features
 
